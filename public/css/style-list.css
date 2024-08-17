@@ -1,0 +1,35 @@
+.table-main {
+    border-radius: 8px;
+    border: 1px solid #635CFF;
+    background: #FFF;
+    font-size: 16px;
+}
+
+.table-main th {
+    border-top: none;
+    border-bottom: 1px solid #635CFF !important;
+    background-color: rgba(99, 92, 255, 0.2) !important;
+    color: black;
+    vertical-align: middle !important;
+}
+
+.table td p {
+    margin-bottom: 0;
+}
+.table td p+p {
+    margin-top: 8px;
+}
+
+.table-main .table > :not(:first-child) {
+    border-top: none;
+}
+
+
+.table-responsive {
+    border-radius: 7px !important;
+    border: 1px solid #000 !important;
+}
+
+#tbody :last-child{
+    border-radius: 0 0 7px 7px !important;
+}

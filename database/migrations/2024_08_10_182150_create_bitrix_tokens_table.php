@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('domain');
             $table->string('access_token');
             $table->string('refresh_token');
-            $table->string('application_token');
+            $table->string('application_token')->nullable();
             $table->timestamp('expires_at');
             $table->timestamps();
         });

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OAuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,10 +15,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('index');
-})->name('index');
+Route::prefix('/')->middleware('token')->name('contact.')->group(function () {
+    Route::get('/', [ContactController::class, 'list'])->name('list');
 
+    Route::get('/create', [ContactController::class, 'create'])->name('create');
+
+    Route::post('/add', [ContactController::class, 'add'])->name('add');
+
+    Route::get('/edit/{contact_id?}/{requisite_id?}/{bank_id?}', [ContactController::class, 'edit'])->name('edit');
+
+    Route::post('/update', [ContactController::class, 'update'])->name('update');
+
+    Route::post('/delete', [ContactController::class, 'delete'])->name('delete');
+});
+
+// Route::get('/getToken', [OAuthController::class, 'getToken'])->name('getToken');
 Route::post('/install', [OAuthController::class, 'handleInstall'])->name('install');
-Route::post('/renew-token', [OAuthController::class, 'renewToken'])->name('renew-token');
-Route::post('/call-api', [OAuthController::class, 'callApi'])->name('call-api');
+
