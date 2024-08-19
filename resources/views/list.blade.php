@@ -19,7 +19,6 @@
         </div>
     </div>
     <div class="table-main mb-5" >
-        {{-- style="border-radius: 6px; border: 1px solid #000;" --}}
         <div class="table-responsive" >
             <table class="table table-striped mb-0">
                 <thead class="table-dark">
@@ -44,30 +43,4 @@
 
 @section('js')
     <script src="{{ asset('js/list.js') }}"></script>
-    <script>
-        $(document).on('click', '.btn-edit', function() {
-            let contact_id = $(this).data('contact_id');
-            let address_id = $(this).data('address_id');
-            let requisite_id = $(this).data('requisite_id');
-            let bank_id = $(this).data('bank_id');
-            let url = $(this).data('url');
-
-            $.ajax({
-                type: "POST",
-                url: url,
-                data: {
-                    contact_id: contact_id,
-                    address_id: address_id,
-                    requisite_id: requisite_id,
-                    bank_id: bank_id
-                },
-                success: function (response) {
-                    console.log(response);
-                },
-                error: function (response) {
-                    console.log(response);
-                }
-            });
-        });
-    </script>
 @endsection

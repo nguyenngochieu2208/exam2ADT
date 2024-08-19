@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 
 class ApiHelper
 {
+    // hàm này trả về url để lấy token từ Bitrix24
     public static function getAccessToken(){
         $domain = env('BITRIX_DOMAIN');
         $clientId = config('services.bitrix.client_id');
@@ -17,13 +18,13 @@ class ApiHelper
         return $authUrl;
     }
 
-    // Yêu cầu token mới từ Bitrix khi token hết hạn
+    // Yêu cầu token mới từ Bitrix24 khi token hết hạn
     public static function renewToken()
     {
         // Lấy token từ DB
         $token = BitrixToken::query()->first();
 
-        // Gửi request lên Bitrix để lấy token mới
+        // Gửi request lên Bitrix24 để lấy token mới
         $response = Http::get('https://'.$token->domain.'/oauth/token/', [
             'grant_type' => 'refresh_token',
             'client_id' => config('services.bitrix.client_id'),
@@ -46,38 +47,56 @@ class ApiHelper
         return false;
     }
 
+    // hàm call api tới Bitrix24
     public static function callApi($action, $payload = []) {
-        try {
-            $domain = env('BITRIX_DOMAIN');
-            $response = Http::get("https://{$domain}/rest/{$action}", $payload);
+        $domain = env('BITRIX_DOMAIN');
 
-            if ($response->successful()) {
+        $timeout = 10;
+        $retry = 3;
 
-                $data = $response->json();
-                return $data;
+        while ($retry > 0) {
+            try {
+                $response = Http::timeout($timeout)->get("https://{$domain}/rest/{$action}", $payload);
 
-            } elseif ($response->failed()) {
+                if ($response->successful()) {
+                    // Trường hợp gọi API thành công
+                    return $response->json();
 
-                $statusCode = $response->status();
-                $errorBody = json_decode($response->body(), true)['error'] ?? 'Unknown error';
+                } elseif ($response->failed()) {
+                    // Trường hợp gọi thất bại
+                    $statusCode = $response->status();
+                    $errorBody = json_decode($response->body(), true)['error'] ?? 'Unknown error';
 
-                if ($statusCode === 401 && $errorBody === 'expired_token') {
-                    if (self::renewToken()) {
-                        $token = BitrixToken::query()->first();
+                    if ($statusCode === 401 && $errorBody === 'expired_token') {
+                        // Xử lý khi token hết hạn
 
-                        $payload['auth'] = $token->access_token;
+                        if (self::renewToken()) {
+                            $token = BitrixToken::query()->first();
+                            $payload['auth'] = $token->access_token;
 
-                        // Gọi lại hàm callApi với cùng action và payload
-                        return self::callApi($action, $payload);
+                            continue;
+                        } else {
+                            return ['error' => 'Không thể làm mới token'];
+                        }
+                    } elseif ($statusCode === 408) {
+                        // Xử lý lỗi timeout
+
+                        $retry--;
+                        if ($retry <= 0) {
+                            return ['error' => 'Lỗi timeout sau khi thử lại'];
+                        }
+
+                        sleep(1);
                     } else {
-                        return response()->json(['error' => 'Không thể làm mới token'], 401);
+                        return [['error' => $errorBody], $statusCode];
                     }
-                } else {
-                    return response()->json(['error' => $errorBody], $statusCode);
                 }
+            } catch (\Exception $e) {
+                return ['error' => 'Lỗi: ' . $e->getMessage()];
             }
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Lỗi: ' . $e->getMessage()], 500);
         }
+
+        return ['error' => 'Lỗi không xác định'];
     }
+
 }

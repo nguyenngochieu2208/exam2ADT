@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Helper\ApiHelper;
+use App\Http\Requests\ContactAddRequest;
+use App\Http\Requests\ContactUpdateRequest;
 use App\Models\BitrixToken;
 use Carbon\Carbon;
 use Exception;
@@ -44,6 +46,9 @@ class ContactController extends Controller
             ];
             $data_bank = ApiHelper::callApi('crm.requisite.bankdetail.list',$payload_bank)['result'];
 
+            if(isset($data_contact['error']) && isset($data_address['error']) && isset($data_requisite['error']) && isset($data_bank['error'])) {
+                return abort(500, 'Lỗi: '.$data_contact['error'].' - '.$data_address['error'].' - '.$data_requisite['error'].' - '.$data_bank['error']);
+            }
 
             // kết hợp danh sách thông tin ngân hàng với requisites dựa trên ENTITY_ID của data ngân hàng
             $collect_requisite = collect($data_requisite)->map(function ($data_requisite) use ($data_bank) {
@@ -81,8 +86,6 @@ class ContactController extends Controller
                 return $data_contact;
             });
 
-            // dd($data);
-
         return view('list',compact('data'));
     }
 
@@ -90,7 +93,7 @@ class ContactController extends Controller
         return view('create');
     }
 
-    public function add(Request $request) {
+    public function add(ContactAddRequest $request) {
         $data = $request->all();
         $token = BitrixToken::query()->first();
 
@@ -150,12 +153,15 @@ class ContactController extends Controller
         ];
         $result_add_bank = ApiHelper::callApi('crm.requisite.bankdetail.add',$payload_bank);
 
+        // trả về lỗi
+        if(isset($result_add_contact['error']) || isset($result_add_address['error']) || isset($result_add_requisite['error']) || isset($result_add_bank['error'])) {
+            return redirect()->route('contact.list')->with('error', 'Thêm mới liên hệ không thành công, Lỗi: '.$result_add_contact['error'].' - '.$result_add_address['error'].' - '.$result_add_requisite['error'].' - '.$result_add_bank['error']);
+        }
+
         return redirect()->route('contact.list')->with('success', 'Thêm mới liên hệ thành công');
     }
 
     public function edit($contact_id, $requisite_id, $bank_id) {
-        // dd($contact_id, $requisite_id, $bank_id);
-
         $token = BitrixToken::query()->first();
 
         // lấy dữ liệu contact
@@ -190,15 +196,21 @@ class ContactController extends Controller
         ];
         $data_bank = ApiHelper::callApi('crm.requisite.bankdetail.get',$payload_bank)['result'];
 
+        //trả về lỗi
+        if(isset($data_contact['error']) || isset($data_address['error']) || isset($data_requisite['error']) || isset($data_bank['error'])) {
+            return redirect()->route('contact.list')->with('error', 'Lấy thông tin liên hệ không thành công, Lỗi: '.$data_contact['error'].' - '.$data_address['error'].' - '.$data_requisite['error'].' - '.$data_bank['error']);
+        }
+
         $data = $data_contact;
         $data['ADDRESS'] = $data_address;
         $data_requisite['BANK'] = $data_bank;
         $data['REQUISITE'] = $data_requisite;
 
+
         return view('edit', compact('data','contact_id','requisite_id','bank_id'));
     }
 
-    public function update(Request $request) {
+    public function update(ContactUpdateRequest $request) {
         try {
             $data = $request->all();
             $token = BitrixToken::query()->first();
@@ -225,7 +237,6 @@ class ContactController extends Controller
                     ],
                 ]
             ];
-
             $update_contact = ApiHelper::callApi('crm.contact.update',$payload);
 
             //cập nhật địa chỉ
@@ -253,6 +264,10 @@ class ContactController extends Controller
                 ]
             ];
             $update_bank = ApiHelper::callApi('crm.requisite.bankdetail.update',$payload_bank);
+
+            if(isset($update_contact['error']) || isset($update_address['error']) || isset($update_bank['error'])) {
+                return redirect()->back()->with('error', 'Cập nhật liên hệ không thành công, Lỗi: '.$update_contact['error'].' - '.$update_address['error'].' - '.$update_bank['error']);
+            }
 
             return redirect()->route('contact.list')->with('success', 'Cập nhật liên hệ thành công');
         } catch (\Exception $e) {
@@ -299,6 +314,10 @@ class ContactController extends Controller
                     'id' => $data['bank_id'],
                 ];
                 $delete_bank = ApiHelper::callApi('crm.requisite.bankdetail.delete',$payload_bank);
+            }
+
+            if(isset($delete_contact['error']) || isset($delete_address['error']) || isset($delete_requisite['error']) || isset($delete_bank['error'])) {
+                return response()->json(['status' => false, 'message' => 'Xoá không thành công, Lỗi: '.$delete_contact['error'].' - '.$delete_address['error'].' - '.$delete_requisite['error'].' - '.$delete_bank['error']], 200);
             }
 
             return response()->json(['status' => true, 'message' => 'Xoá thành công liên hệ'], 200);
