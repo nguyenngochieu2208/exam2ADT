@@ -7,60 +7,58 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+## Cách chạy code
+1. Bước 1: Tải Xampp version: 8.2.12 / PHP 8.2.12 về máy với đường link: https://www.apachefriends.
+org/download.html.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+2. Bước 2: Tải Composer về máy với đường link: https://getcomposer.org/download/.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+3. Bước 3: CD tới thư mục vừa clone code, chạy lệnh " composer install " để cài đặt các package của laravel.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+4. Bước 4: Sau khi cài đặt xong, chạy các lệnh sau:
+- cp .env.example .env
+- php artisan key:generate
 
-## Learning Laravel
+5. Bước 5 : Tạo 1 database với mysql và thay đổi các trường thông tin trong file env: 
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- DB_CONNECTION , DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD.
+- BITRIX_DOMAIN, BITRIX_CLIENT_ID, BITRIX_CLIENT_SECRET.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Sau đó chạy lệnh:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- php artisan migrate
 
-## Laravel Sponsors
+6. Bước 6: Sau khi chạy xong các lệnh trên, chạy lệnh " php artisan serve ".
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+7. Bước 7: Dùng port hiển thị phía dưới để thực hiện chạy ngrok: 
+- ngrok.exe http 127.0.0.1:8000
 
-### Premium Partners
+8. Bước 8: Thay đổi handler path và install path (/install) trong cấu hình Application của Bitrix24 và APP_URL trong file env của Laravel.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+9. Bước 9: Truy cập vào url để xem trang web.
 
-## Contributing
+## Phương pháp làm bài
+Trong bài test ở mức trung cấp lần này em đã sử dụng Laravel với mô hình MVC để thực hiện các yêu cầu mà Quý công ty đưa ra.
+Các công việc cụ thể:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. Bài 1:
+- Tạo các route để nhận sự kiện install/reinstall từ Bitrix24 (routes/web.php).
+- Viết class ApiHelper có phương thức giúp gọi API tới Bitrix24, xử lý lỗi, renew token, ...
+- Tạo model và migration để định nghĩa bảng bitrix_tokens giúp lưu trữ dữ liệu.
+- Tạo middleware (TokenMiddleware) để kiểm tra token đang lưu trong hệ thống còn hoạt động được hay không khi truy cập vào các route,
+- Tạo controller (OAuthController) để xử lý gọi yêu cầu, lưu trữ token.
 
-## Code of Conduct
+2. Bài 2:
+- Tạo routes cho các phương thức CRUD Contact
+- Tạo views cho các phương thức CRUD Contact.
+- Tạo controller (ContactController) để thực hiện CRUD Contact, Requisite với Bitrix24. 
+- Tạo các request để thực hiện validate dữ liệu trước khi gửi request add, update lên Bitrix.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Ngoài ra trong bài test lần này em còn sử dụng các thư viện để giúp làm giao diện, hiển thị lỗi,.. như: 
+- Bootstrap 
+- jQuery, ToastrJs, Sweetalert2.
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
