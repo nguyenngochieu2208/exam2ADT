@@ -47,7 +47,7 @@ class TokenMiddleware
                     'expires_at' => Carbon::now()->addSeconds($response['expires_in']),
                 ]);
 
-                return redirect()->route($route)->with('success', 'Token của bạn đã hết hạn, token mới đã được tạo');
+                return redirect()->route($route)->with('success', 'Token đã được tạo mới');
             }
             return $next($request);
         }
